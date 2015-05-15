@@ -1,44 +1,55 @@
-#--- Load a csv file and set CRS
-#---1 Reference library
+import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
 from qgis.core import *
-from qgis.utils import iface
-print QgsApplication.showSettings()
 from qgis.gui import *
 
-canvas = QgsMapCanvas()
+qgis_prefix = "C:/OSGeo4W64/apps/qgis"
+app = QgsApplication([], True) 
+QgsApplication.setPrefixPath(qgis_prefix, True)
 
+#print QgsApplication.showSettings()
+
+QgsApplication.initQgis()
+mapinstance = QgsMapLayerRegistry.instance()
+
+##Canvas
+canvas = QgsMapCanvas()
+canvas.setCanvasColor(Qt.white)
+canvas.enableAntiAliasing(True)
 
 
 
 ##Agregando el mapa de la Republica como un layer
 mapa = QgsVectorLayer("C:/Users/INE/Documents/MapaRepublica/22_DEPARTAMENTOS.shp","","ogr")
 if not mapa.isValid():
-    print "ERROR: El mapa no pudo ser cargado."
+	print "El mapa no se pudo cargar"
+else:
+	print "El mapa ha sido cargado exitosamente"
 idMapa = mapa.id()
-print(idMapa)
-
-
+print idMapa	
 ##Agregando el CSV como una capa vectorial
-uri = "file:///C:/Users/INE/Documents/pruebaDatos.csv?delimiter=%s&x=%s&y=%s" % (";","x","y")
+uri = "file:///C:/Users/INE/Documents/pruebaDatos.csv?delimiter=%s&x=%s&y=%s" % (";","X","Y")
 datos = QgsVectorLayer(uri, "", "delimitedtext")
-print "La capa de los csv es valida: " 
-print datos.isValid()
+if not datos.isValid():
+	print "La capa de los csv no se pudo cargar"
+else:
+	print "Se cargo el csv exitosamente"
 idDatos = datos.id()
 print idDatos
 
 ##Agregando el mapa a la region activa para poder ser renderizado
-QgsMapLayerRegistry.instance().addMapLayer(mapa)
-QgsMapLayerRegistry.instance().addMapLayer(datos)
+layerset = []
+mapinstance.addMapLayer(mapa)
+mapinstance.addMapLayer(datos)
+layerset.append(mapa.id() )
+
 
 # set extent to the extent of our layer
 canvas.setExtent(mapa.extent())
-
-# set the map canvas layer set
 canvas.setLayerSet([QgsMapCanvasLayer(mapa)])
 canvas.show()
-
+canvas.freeze(True)
 
 ##Haciendo el Join 
 info = QgsVectorJoinInfo()
@@ -46,7 +57,7 @@ info.joinFieldName = "X"
 info.joinLayerId =  idDatos
 info.targetFieldName = "DEPARTAMEN"
 info.memoryCache = False
-QgsMapLayerRegistry.instance().mapLayer(idMapa).addJoin(info) 
+mapinstance.mapLayer(idMapa).addJoin(info) 
 
 ## Aplicando el pintado con cierta graduacion
 fieldName = "_Y"
@@ -62,17 +73,24 @@ symbol =  QgsFillSymbolV2.createSimple(props)
 renderer = QgsGraduatedSymbolRendererV2.createRenderer(mapa, fieldName, numberOfClasses, QgsGraduatedSymbolRendererV2.Quantile, symbol, ramp)
 
 mapa.setRendererV2( renderer )
-QgsMapLayerRegistry.instance().addMapLayer( mapa )
-
-
+mapinstance.addMapLayer( mapa )
+layerset = [idMapa]
+print mapinstance.mapLayers()
 
 ## Haciendo el composer 
-mapRenderer = iface.mapCanvas().mapRenderer()
-lst = [idMapa] 
+print "Los settings del canvas son"
+print canvas.mapSettings().extent().toString()
+mapRenderer = QgsMapRenderer()
+mapRectangle = QgsRectangle(350000,1600000,800000,2000000)
+lst = [idMapa]
 mapRenderer.setLayerSet(lst)
+print mapRenderer.setExtent(mapRectangle)
+print "El extent del mapa es: "
+print mapRenderer.extent().yMaximum ()
+c = QgsComposition(canvas.mapSettings())
 print "El layer set es: "
-print mapRenderer.layerSet()
-c = QgsComposition(mapRenderer)
+print mapRenderer.layerSet()[0]
+mapRenderer.updateScale ()
 c.setPlotStyle(QgsComposition.Print)
 
 
@@ -80,8 +98,8 @@ c.setPlotStyle(QgsComposition.Print)
 x, y = 0.5, 0.5
 w, h = c.paperWidth(), c.paperHeight()
 composerMap = QgsComposerMap(c, x ,y, w, h)
-#composerMap.setItemPosition(-,-450)
-c.addComposerMap(composerMap)
+#composerMap.setItemPosition(,100)
+c.addItem(composerMap)
 
 
 
@@ -89,7 +107,7 @@ c.addComposerMap(composerMap)
 ##Agregando la leyenda
 legend = QgsComposerLegend(c)
 legend.model().setLayerSet(mapRenderer.layerSet())
-legend.setItemPosition(100,10,False)
+legend.setItemPosition(0,0,False)
 legend.setTitle("")
 c.addItem(legend)
 
@@ -99,7 +117,7 @@ c.addItem(legend)
 ##Exportando a pdf
 printer = QPrinter()
 printer.setOutputFormat(QPrinter.PdfFormat)
-printer.setOutputFileName("C:/Users/INE/Documents/MapaRepublica/pruebaMapa1.pdf")
+printer.setOutputFileName("C:/Users/INE/Documents/MapaRepublica/mapa.pdf")
 printer.setPaperSize(QSizeF(c.paperWidth(), c.paperHeight()), QPrinter.Millimeter)
 printer.setFullPage(True)
 printer.setColorMode(QPrinter.Color)
@@ -111,11 +129,35 @@ paperRectPixel = printer.pageRect(QPrinter.DevicePixel)
 c.render(pdfPainter, paperRectPixel, paperRectMM)
 pdfPainter.end()
 
+# create image
+img = QImage(QSize(800,600), QImage.Format_ARGB32_Premultiplied)
+# set image background color
+color = QColor(255,255,255)
+img.fill(color.rgb())
+# create painter
+p = QPainter()
+p.begin(img)
+p.setRenderHint(QPainter.Antialiasing)
+render = QgsMapRenderer()
+# set layer set
+lst = [ idMapa ] # add ID of every layer
+render.setLayerSet(lst)
+# set extent
+rect = QgsRectangle(render.fullExtent())
+#rect.scale(1.39800703)
+rect.scale(1.1)
+render.setExtent(rect)
+# set output size
+render.setOutputSize(img.size(), img.logicalDpiX())
+# do the rendering
+render.render(p)
+p.end()
+
+# save image
+img.save('C:/Users/INE/Documents/MapaRepublica/mapa.png',"png")    
+app.exec_()
+##Cerrando la aplicacion
+#QgsApplication.exitQgis() 
 
 
 
-
-
-
-
-    

@@ -4,6 +4,7 @@ from qgis.core import *
 from qgis.utils import iface
 
 ## Haciendo el composer 
+
 mapRenderer = iface.mapCanvas().mapRenderer()
 c = QgsComposition(mapRenderer)
 c.setPlotStyle(QgsComposition.Print)
@@ -12,7 +13,7 @@ c.setPlotStyle(QgsComposition.Print)
 ##Agregando el mapa al composer
 x, y = 0.5, 0.5
 w, h = c.paperWidth(), c.paperHeight()
-composerMap = QgsComposerMap(c, x ,y, 3*w, 3*h)
+composerMap = QgsComposerMap(c, x ,y, w, h)
 composerMap.setItemPosition(-300,-450)
 c.addItem(composerMap)
 
