@@ -33,7 +33,7 @@ c.addItem(legend)
 ##Exportando a pdf
 printer = QPrinter()
 printer.setOutputFormat(QPrinter.PdfFormat)
-printer.setOutputFileName("C:/Users/INE/Documents/MapaRepublica/pruebaMapa1.pdf")
+printer.setOutputFileName("C:/Users/hugoa_000/Documents/MapaRepublica/pruebaMapa1.pdf")
 printer.setPaperSize(QSizeF(c.paperWidth(), c.paperHeight()), QPrinter.Millimeter)
 printer.setFullPage(True)
 printer.setColorMode(QPrinter.Color)

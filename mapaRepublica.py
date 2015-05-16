@@ -12,8 +12,10 @@ canvas = QgsMapCanvas()
 
 
 
+print QgsApplication.showSettings()
+
 ##Agregando el mapa de la Republica como un layer
-mapa = QgsVectorLayer("C:/Users/INE/Documents/MapaRepublica/22_DEPARTAMENTOS.shp","","ogr")
+mapa = QgsVectorLayer("C:/Users/hugoa_000/Documents/MapaRepublica/22_DEPARTAMENTOS.shp","","ogr")
 if not mapa.isValid():
     print "ERROR: El mapa no pudo ser cargado."
 idMapa = mapa.id()
@@ -21,7 +23,7 @@ print(idMapa)
 
 
 ##Agregando el CSV como una capa vectorial
-uri = "file:///C:/Users/INE/Documents/pruebaDatos.csv?delimiter=%s&x=%s&y=%s" % (";","x","y")
+uri = "file:///C:/Users/hugoa_000/Documents/pruebaDatos.csv?delimiter=%s&x=%s&y=%s" % (";","x","y")
 datos = QgsVectorLayer(uri, "", "delimitedtext")
 print "La capa de los csv es valida: " 
 print datos.isValid()
