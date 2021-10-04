@@ -1,17 +1,17 @@
 import sys
-from PyQt4.QtGui import *
-from PyQt4.QtCore import * 
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 from qgis.core import *
 from qgis.gui import *
 
-qgis_prefix = "C:/OSGeo4W64/apps/qgis"
+qgis_prefix = "/usr"
 app = QgsApplication([], True) 
 QgsApplication.setPrefixPath(qgis_prefix, True)
 
 #print QgsApplication.showSettings()
 
 QgsApplication.initQgis()
-mapinstance = QgsMapLayerRegistry.instance()
+#mapinstance = QgsMapLayerRegistry.instance()
 
 ##Canvas
 canvas = QgsMapCanvas()
@@ -21,22 +21,22 @@ canvas.enableAntiAliasing(True)
 
 
 ##Agregando el mapa de la Republica como un layer
-mapa = QgsVectorLayer("C:/Users/INE/Documents/MapaRepublica/22_DEPARTAMENTOS.shp","","ogr")
+mapa = QgsVectorLayer("/home/hugog/Insync/hugoallangm@gmail.com/Google Drive/Consultorias/UNICEF/Mapas/departamentos_gtm/departamentos_gtm.shp","","ogr")
 if not mapa.isValid():
-	print "El mapa no se pudo cargar"
+	print("El mapa no se pudo cargar")
 else:
-	print "El mapa ha sido cargado exitosamente"
+	print("El mapa ha sido cargado exitosamente")
 idMapa = mapa.id()
-print idMapa	
+print(idMapa)
 ##Agregando el CSV como una capa vectorial
 uri = "file:///C:/Users/INE/Documents/pruebaDatos.csv?delimiter=%s&x=%s&y=%s" % (";","X","Y")
 datos = QgsVectorLayer(uri, "", "delimitedtext")
 if not datos.isValid():
-	print "La capa de los csv no se pudo cargar"
+	print ("La capa de los csv no se pudo cargar")
 else:
-	print "Se cargo el csv exitosamente"
+	print ("Se cargo el csv exitosamente")
 idDatos = datos.id()
-print idDatos
+print(idDatos)
 
 ##Agregando el mapa a la region activa para poder ser renderizado
 layerset = []
@@ -75,21 +75,21 @@ renderer = QgsGraduatedSymbolRendererV2.createRenderer(mapa, fieldName, numberOf
 mapa.setRendererV2( renderer )
 mapinstance.addMapLayer( mapa )
 layerset = [idMapa]
-print mapinstance.mapLayers()
+print(mapinstance.mapLayers())
 
 ## Haciendo el composer 
-print "Los settings del canvas son"
-print canvas.mapSettings().extent().toString()
+print("Los settings del canvas son")
+print(canvas.mapSettings().extent().toString())
 mapRenderer = QgsMapRenderer()
 mapRectangle = QgsRectangle(350000,1600000,800000,2000000)
 lst = [idMapa]
 mapRenderer.setLayerSet(lst)
-print mapRenderer.setExtent(mapRectangle)
-print "El extent del mapa es: "
-print mapRenderer.extent().yMaximum ()
+print(mapRenderer.setExtent(mapRectangle))
+print("El extent del mapa es: ")
+print(mapRenderer.extent().yMaximum ())
 c = QgsComposition(canvas.mapSettings())
-print "El layer set es: "
-print mapRenderer.layerSet()[0]
+print("El layer set es: ")
+print(mapRenderer.layerSet()[0])
 mapRenderer.updateScale ()
 c.setPlotStyle(QgsComposition.Print)
 

@@ -1,3 +1,6 @@
+#Ignore file's project
+.idea
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
