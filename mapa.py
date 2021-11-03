@@ -4,6 +4,28 @@ from PyQt5.QtCore import *
 from qgis.core import *
 from qgis.gui import *
 
+from qgis.PyQt.QtGui import (
+	QColor,
+)
+
+from qgis.PyQt.QtCore import Qt, QRectF
+
+from qgis.core import (
+	QgsVectorLayer,
+	QgsPoint,
+	QgsPointXY,
+	QgsProject,
+	QgsGeometry,
+	QgsMapRendererJob,
+)
+
+from qgis.gui import (
+	QgsMapCanvas,
+	QgsVertexMarker,
+	QgsMapCanvasItem,
+	QgsRubberBand,
+)
+
 qgis_prefix = "/usr"
 app = QgsApplication([], True) 
 QgsApplication.setPrefixPath(qgis_prefix, True)
@@ -11,7 +33,8 @@ QgsApplication.setPrefixPath(qgis_prefix, True)
 #print QgsApplication.showSettings()
 
 QgsApplication.initQgis()
-#mapinstance = QgsMapLayerRegistry.instance()
+#Ver https://docs.qgis.org/3.16/en/docs/pyqgis_developer_cookbook/loadlayer.html#qgsproject-instance
+proyecto = QgsProject.instance()
 
 ##Canvas
 canvas = QgsMapCanvas()
@@ -40,8 +63,8 @@ print(idDatos)
 
 ##Agregando el mapa a la region activa para poder ser renderizado
 layerset = []
-mapinstance.addMapLayer(mapa)
-mapinstance.addMapLayer(datos)
+proyecto.addMapLayer(mapa)
+proyecto.addMapLayer(datos)
 layerset.append(mapa.id() )
 
 
