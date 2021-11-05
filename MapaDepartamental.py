@@ -1,21 +1,25 @@
+import os.path
+
 from Mapa import Mapa
 from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsVectorLayerJoinInfo
 from PyQt5.QtCore import QVariant
 from pandas import read_excel
+import os
 
 class MapaDepartamental(Mapa):
     def __init__(self):
         super().__init__()
 
     def cargar_shape(self):
-        self.mapa = QgsVectorLayer('/home/hugog/GitHub/ScriptsQgis/departamentos_gtm/departamentos_gtm.shp', "", "ogr")
+        self.mapa = QgsVectorLayer(os.path.join(os.getcwd(),
+                                                'departamentos_gtm/departamentos_gtm.shp'), "", "ogr")
         if not self.mapa.isValid():
             print("ERROR: El mapa no pudo ser cargado.")
         else:
             self.IdMapa = self.mapa.id()
             self.proyecto.instance().addMapLayer(self.mapa)
 
-    def cargar_datos(self, ruta = '/home/hugog/GitHub/ScriptsQgis/Datos_pruebas/datos_deptos.xlsx'):
+    def cargar_datos(self, ruta = os.path.join(os.getcwd(),'Datos_pruebas/datos_deptos.xlsx')):
         self.datos = read_excel(ruta)
         self.datos.dropna(inplace=True)
         print(self.datos.columns)
