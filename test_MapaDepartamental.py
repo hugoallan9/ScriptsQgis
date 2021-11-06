@@ -22,3 +22,13 @@ class TestMapaDepartamental(TestCase):
     def test_join(self):
         self.test_crear_layer_datos()
         self.mapa.join(x= 'Código Departamento')
+
+    def test_pintar_mapa_intervalos(self):
+        self.test_join()
+        self.mapa.pintar_mapa_intervalos(fieldName = "datos_Educación",color1=self.mapa.colorCyan,
+                              color2=self.mapa.colorBlanco)
+        #self.mapa.exportarMapa()
+
+    def test_exportar_mapa(self):
+        self.test_pintar_mapa_intervalos()
+        self.mapa.exportarMapa()

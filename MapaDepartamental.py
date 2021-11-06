@@ -58,6 +58,3 @@ class MapaDepartamental(Mapa):
         info.setPrefix("datos_")
         self.proyecto.instance().mapLayer(self.IdMapa).addJoin(info)
         self.mapa.updateFields()
-        print(self.proyecto.instance().mapLayer(self.IdMapa).vectorJoins())
-        print(self.proyecto.instance().mapLayer(self.IdMapa).fields().names())
-        print(self.proyecto.instance().mapLayer(self.IdDatos).fields().names())
