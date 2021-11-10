@@ -37,3 +37,4 @@ class TestMapaDepartamental(TestCase):
         self.test_pintar_mapa_intervalos()
         self.mapa.cambiarBorde(color="#808080",grosor=0.4)
         self.mapa.exportarMapa()
+

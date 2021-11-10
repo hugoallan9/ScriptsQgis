@@ -15,6 +15,12 @@ from qgis.core import (
     QgsMapSettings,
     QgsMapRendererParallelJob,
     QgsFillSymbol,
+    QgsPrintLayout,
+    QgsLayoutItemMap,
+    QgsLayoutPoint,
+    QgsUnitTypes,
+    QgsLayoutSize,
+    QgsLayoutExporter,
  )
 
 
@@ -23,7 +29,7 @@ class Mapa:
         self.mapa = None
         self.qgs = QgsApplication([],True)
         self.qgs.initQgis()
-        self.proyecto = QgsProject()
+        self.proyecto = QgsProject().instance()
         self.colorCyan = QColor(0,174,239,255)
         self.colorBlanco = QColor(255,255,255,255)
 
@@ -58,7 +64,7 @@ class Mapa:
 
 
 
-    def exportarMapa(self):
+    def _exportarMapaPruebas(self):
         image_location = os.path.join(QgsProject.instance().homePath(), "render1.png")
         vlayer = self.mapa
         settings = QgsMapSettings()
@@ -86,6 +92,20 @@ class Mapa:
         render.finished.connect(loop.quit)
         loop.exec_()
 
+    def exportarMapa(self,formato = 'svg'):
+        layout = QgsPrintLayout(self.proyecto)
+        layout.initializeDefaults()
 
+        #Añadiendo mapa
+        mapa = QgsLayoutItemMap(layout)
+        mapa.attemptMove(QgsLayoutPoint(5,5,QgsUnitTypes.LayoutMillimeters))
+        mapa.attemptResize(QgsLayoutSize(200,200,QgsUnitTypes.LayoutMillimeters))
+        #mapa.zoomToExtent(iface.mapCanvas().extent())
+        layout.addLayoutItem(mapa)
 
+        base_path = os.path.join(QgsProject.instance().homePath())
+        pdf_path = os.path.join(base_path, "output.pdf")
+
+        exporter = QgsLayoutExporter(layout)
+        exporter.exportToPdf(pdf_path, QgsLayoutExporter.PdfExportSettings())
 
