@@ -16,7 +16,7 @@ class TestMapaDepartamental(TestCase):
     def test_crear_layer_datos(self):
         self.test_cargar_shape()
         self.test_cargar_datos()
-        self.mapa.crear_layer_datos(x= 'Código Departamento',y='Educación')
+        self.mapa.crear_layer_datos(x= 'Código Departamento',y='Continuo')
         print(self.mapa.proyecto.mapLayers())
 
     def test_join(self):
@@ -25,10 +25,15 @@ class TestMapaDepartamental(TestCase):
 
     def test_pintar_mapa_intervalos(self):
         self.test_join()
-        self.mapa.pintar_mapa_intervalos(fieldName = "datos_Educación",color1=self.mapa.colorCyan,
-                              color2=self.mapa.colorBlanco)
+        self.mapa.pintar_mapa_intervalos(fieldName = "datos_Continuo",color1=self.mapa.colorCyan,
+                              color2=self.mapa.colorBlanco, numeroClases=4)
         #self.mapa.exportarMapa()
 
     def test_exportar_mapa(self):
         self.test_pintar_mapa_intervalos()
+        self.mapa.exportarMapa()
+
+    def test_cambiarBorde(self):
+        self.test_pintar_mapa_intervalos()
+        self.mapa.cambiarBorde(color="#808080",grosor=0.4)
         self.mapa.exportarMapa()

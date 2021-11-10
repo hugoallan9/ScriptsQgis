@@ -29,7 +29,7 @@ class Mapa:
 
 
 
-    def pintar_mapa_intervalos(self,fieldName, color1 ,color2 ,discreto = False):
+    def pintar_mapa_intervalos(self,fieldName, color1 ,color2, numeroClases ,discreto = False):
         rampa = QgsGradientColorRamp(color1,color2,discreto)
         #Crear el método de clasificación
         clasificacion = QgsClassificationQuantile()
@@ -40,11 +40,23 @@ class Mapa:
         renderer.setClassAttribute(fieldName)
         renderer.setClassificationMethod(clasificacion)
         renderer.updateColorRamp(rampa)
-        props = {'color_border': '255,255,255,255', 'style': 'solid', 'style_border': 'solid', 'width_border': '0.4'}
-        symbol = QgsFillSymbol.createSimple(props)
+        #props = {'color_border': 'black', 'style': 'solid', 'style_border': 'solid', 'width_border': '0.4'}
+        #symbol = QgsFillSymbol.createSimple(props)
+
+        symbol = self.mapa.renderer().symbol()
+
         renderer = QgsGraduatedSymbolRenderer.createRenderer(self.mapa,
-                                                             fieldName, 4, QgsGraduatedSymbolRenderer.Quantile, symbol, rampa)
+                                                             fieldName, numeroClases, QgsGraduatedSymbolRenderer.Quantile, symbol, rampa)
         self.mapa.setRenderer(renderer)
+
+    def cambiarBorde(self, color = 'white', grosor = 0.3):
+        props = {'color_border': color, 'style': 'solid', 'style_border': 'solid', 'width_border': grosor}
+        symbol = QgsFillSymbol.createSimple(props)
+        self.mapa.renderer().updateSymbols(symbol)
+
+
+
+
 
     def exportarMapa(self):
         image_location = os.path.join(QgsProject.instance().homePath(), "render1.png")
