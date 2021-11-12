@@ -1,9 +1,10 @@
 #from PyQt4.QtGui import *
 #from PyQt4.QtCore import *
+import math
 
 from qgis.utils import iface
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtCore import QSize, QPointF, Qt
 import os
 from qgis.core import (
     QgsProject,
@@ -21,7 +22,19 @@ from qgis.core import (
     QgsUnitTypes,
     QgsLayoutSize,
     QgsLayoutExporter,
+    QgsRectangle,
+    QgsLayoutItemLabel,
+    QgsLayoutItemLegend,
+    QgsPointXY,
+    QgsRenderContext,
+    QgsLayoutItemPage,
  )
+from qgis.gui import (
+    QgsMapCanvas,
+    QgsVertexMarker,
+    QgsMapCanvasItem,
+    QgsRubberBand,
+)
 
 
 class Mapa:
@@ -32,6 +45,8 @@ class Mapa:
         self.proyecto = QgsProject().instance()
         self.colorCyan = QColor(0,174,239,255)
         self.colorBlanco = QColor(255,255,255,255)
+        self.paperHeight = 0
+        self.paperWidth= 0
 
 
 
@@ -92,20 +107,73 @@ class Mapa:
         render.finished.connect(loop.quit)
         loop.exec_()
 
+    def cambiarTamHoja(self, layout, size = "Letter", height = 0, width = 0):
+        pc = layout.pageCollection()
+        if size == "Letter":
+            self.paperHeight = 8.5
+            self.paperWidth = 11
+        elif size == "Presentation":
+            self.paperWidth = 9.60 * 2.36
+            self.paperHeight = 9.60
+        elif size == "Personalizado":
+            self.paperHeight = width
+            self.paperWidth = height
+        pc.pages()[0].setPageSize(QgsLayoutSize(width = self.paperWidth, height = self.paperHeight,
+                                                units = QgsUnitTypes.LayoutInches))
+
+    def insertarTitulo(self, layout, titulo):
+        label = None
+        if self.layout.itemById('labelTitulo') == None:
+            label = QgsLayoutItemLabel(layout)
+            label.setId('labelTitulo')
+        else:
+            label = self.layout.itemById('labelTitulo')
+        label.setText(titulo)
+        fuente = QFont("Arial", math.floor(72 * self.paperHeight * 1 / 10 * 0.5))
+        label.setFont(fuente)
+        label.adjustSizeToText()
+        tamTexto = label.sizeForText()
+        label.attemptMove(
+            QgsLayoutPoint(self.paperWidth / 2 - (tamTexto.width() / 2) * 0.0394, 0.01, QgsUnitTypes.LayoutInches))
+        layout.addLayoutItem(label)
+
+
     def exportarMapa(self,formato = 'svg'):
-        layout = QgsPrintLayout(self.proyecto)
-        layout.initializeDefaults()
+        self.manager = self.proyecto.layoutManager()
+        layoutName = 'Layout1'
+        layouts_list = self.manager.printLayouts()
+        # remove any duplicate layouts
+        for layout in layouts_list:
+            if layout.name() == layoutName:
+                self.manager.removeLayout(layout)
+        self.layout = QgsPrintLayout(self.proyecto)
+        self.layout.initializeDefaults()
+        self.cambiarTamHoja(self.layout, size="Letter")
+        self.manager.addLayout(self.layout)
 
         #Añadiendo mapa
-        mapa = QgsLayoutItemMap(layout)
-        mapa.attemptMove(QgsLayoutPoint(5,5,QgsUnitTypes.LayoutMillimeters))
-        mapa.attemptResize(QgsLayoutSize(200,200,QgsUnitTypes.LayoutMillimeters))
-        #mapa.zoomToExtent(iface.mapCanvas().extent())
-        layout.addLayoutItem(mapa)
+        mapa = QgsLayoutItemMap(self.layout)
+        mapa.attemptMove(QgsLayoutPoint(self.paperWidth/20,self.paperHeight*2/20,QgsUnitTypes.LayoutInches))
+        mapa.attemptResize(QgsLayoutSize(self.paperHeight*17/20,self.paperWidth,QgsUnitTypes.LayoutInches))
+        mapa.setExtent(self.mapa.extent())
+        self.layout.addLayoutItem(mapa)
 
+
+        self.insertarTitulo(self.layout, "En UNICEF amamos a los niños")
+
+
+        '''
+        
+
+        legend = QgsLayoutItemLegend(layout)
+        legend.setTitle("Legend")
+        layout.addLayoutItem(legend)
+        #legend.attemptMove(QgsLayoutPoint(246, 5, QgsUnitTypes.LayoutMillimeters))
+'''
         base_path = os.path.join(QgsProject.instance().homePath())
         pdf_path = os.path.join(base_path, "output.pdf")
 
-        exporter = QgsLayoutExporter(layout)
+        #layout = manager.layoutByName(layoutName)
+        exporter = QgsLayoutExporter(self.layout)
         exporter.exportToPdf(pdf_path, QgsLayoutExporter.PdfExportSettings())
 

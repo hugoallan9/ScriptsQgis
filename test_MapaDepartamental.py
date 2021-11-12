@@ -30,11 +30,11 @@ class TestMapaDepartamental(TestCase):
         #self.mapa.exportarMapa()
 
     def test_exportar_mapa(self):
-        self.test_pintar_mapa_intervalos()
+        self.test_cambiarBorde()
         self.mapa.exportarMapa()
 
     def test_cambiarBorde(self):
         self.test_pintar_mapa_intervalos()
         self.mapa.cambiarBorde(color="#808080",grosor=0.4)
-        self.mapa.exportarMapa()
+
 
